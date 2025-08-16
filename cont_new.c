@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <ctype.h>
 
 //  Максимальное количество контактов в базе данных
-#define CONTACT_LIM 100 
+const int CONTACT_LIM 100 
 //  Максимальная длина введенных пользователем данных
-#define CHAR_LIM 50
-
+const int CHAR_LIM 50
 
 //  Структура описывает имя, фамилию, телефон и email
 typedef struct {
@@ -17,54 +16,49 @@ typedef struct {
 	char email[CHAR_LIM];
 } Contact;
 
-
 //  Запуск программы базы данных контактов
-void contact_database(Contact *data, int len);
+void get_contact_database(Contact *data, int len);
 
-
-//  Стартовая фраза
-void introductory_phrase();
-//  Фраза перед завершением программы
-void last_phrase();
-
+//  Печать стартовой фразы
+void print_greeting();
+//  Печать последней фразы
+void print_farewell();
 
 //  Вывод опций
-void selection_menu(Contact *data, int len);
+void select_menu(Contact *data, int len);
 //  Ввод пользователем номера опции
-void enter_menu(char *answer, int len);
+int enter_menu_option();
 //  Переход к нужной опции
-int select_item(Contact *data, int len);
-
+int select_option(Contact *data, int len);
 
 //  Добавление контакта в базу данных
 void add_contact(Contact *data, int len);
 //  Ввод контакта пользователем
-void input_new_contact(Contact *data, int len);
-
+void enter_contact(Contact *data, int len);
 
 //  Вывод всех хранящихся контактов
 void display_all_contacts(Contact *data, int len);
 //  Вывод одного переданного контакта
 void print_contact(Contact person);
 
+//  Проверяет, содержит ли что-нибудь кроме пробельных символов буфер ввода
+int is_input_buffer_clean();
+//  Очистка буфера ввода
+void clear_input_buffer();
+//  Очистка терминала
+void clear_screen();
 
 //  Поиск индекса контакта по заданным имени и фамилии
 int find_contact_index(Contact *data, int len, char *name1, char *name2);
-//  Очистка буфера ввода
-void clear_buffer();
-//  Очистка терминала
-void clear_screen();
 //  Ввод пользователем имени и фамилии контакта
 void enter_full_name(char *name1, char *name2);
 //  Удаление контакта по переданному индексу
 void clear_contact(Contact *data, int index);
 
-
 //  Поиск и вывод полной информации о контакте по его местоположению
 void find_contact(Contact *data, int len);
 //  Поиск контакта и удаление информации о нем
 void delete_contact(Contact *data, int len);
-
 
 //  Меняет местами элементы в массиве с контактами
 void swap_contacts(Contact *a, Contact *b);
@@ -73,14 +67,12 @@ int name_comparison(Contact el, Contact key);
 //  Сортирует контакты по имени и фамилии с помощью вставок
 void insertion_sort_for_contacts(Contact *data, int len);
 
-
 //  Экспорт контактов
 void save_contacts(Contact *data, int len);
 //  Переносит контакты в файл
 void transfer_contacts(Contact *data, int len, char *file);
 //  Ввод пользователем файла, в который будет произведено сохранение
 void enter_file(char *file, int max_name_len);
-
 
 //  Импорт контактов
 void load_contacts(Contact *data, int len);
@@ -89,79 +81,74 @@ void loading_contacts(Contact *data, int len, char *file);
 //  Проверяет, существует ли файл или нет
 int file_exists(char *file);
 
-
 int main()
 {
 	Contact data[CONTACT_LIM] = {0};
 	
-	contact_database(data, CONTACT_LIM);
+	get_contact_database(data, CONTACT_LIM);
 	
 	return 0;
 }
 
 
-void contact_database(Contact *data, int len)
-{
-	clear_screen();
+void get_contact_database(Contact *data, int len)
+{	
+	print_greeting();
 	
-	introductory_phrase();
+	select_menu(data, len);
 	
-	selection_menu(data, len);
-	
-	last_phrase();
+	print_farewell();
 }
 
 
-void introductory_phrase()
+void print_greeting()
 {
-	printf("Hello! In this program you can interact\n");
-	printf("with the contact book. Let's go started.\n");
+	printf("Hello! In this program you can interact\n"
+           "with the contact book. Let's go started.\n");
 }
 
 
-void last_phrase()
+void print_farewell()
 {
 	printf("See you later. Bye!\n");
 }
 
 
-void selection_menu(Contact *data, int len)
+void select_menu(Contact *data, int len)
 {
-	do {
-	printf("\n1 - Add contact\n");
-	printf("2 - Show all contacts\n");
-	printf("3 - Find contact\n");
-	printf("4 - Delete contact\n");
-	printf("5 - Exit\n");
-	printf("6 - Save contacts to file\n");
-	printf("7 - Load contacts from file\n\n");
-	} while (select_item(data, len) == 0);
+	do {    
+	    printf("1 - Add contact\n"
+               "2 - Show all contacts\n"
+               "3 - Find contact\n"
+               "4 - Delete contact\n"
+               "5 - Exit\n"
+               "6 - Save contacts to file\n"
+               "7 - Load contacts from file\n\n");
+	} while (select_option(data, len) == 0);
 }
 
 
-void enter_menu(char *answer, int len)
+int enter_menu_option()
 {
-	fgets(answer, len, stdin);
-	
-	while (strlen(answer) != 2 || 
-		!('1' <= answer[0] && answer[0] <= '7')) {
-			
-		printf("\nWrong answer, try again\n");
-		
-		fgets(answer, len, stdin);
-	}
+    while (1) {
+        int answer = getchar();
+
+        if (is_input_buffer_clean() && '1' <= answer && answer <= '7')
+            return answer;
+
+        clear_input_buffer();
+        printf("Try again\n");
+    }
 }
 
 
-int select_item(Contact *data, int len)
+int select_option(Contact *data, int len)
 {
-	char answer[CHAR_LIM] = {0};
-	
-	enter_menu(answer, sizeof(answer));
+    int answer = enter_menu_option();
+    
+    clear_screen();
 
-	clear_screen();
-	
-	switch (answer[0]) {
+	switch (answer) {
 		case '1': add_contact(data, len); break;
 		case '2': display_all_contacts(data, len); break;
 		case '3': find_contact(data, len); break;
@@ -179,13 +166,13 @@ void add_contact(Contact *data, int len)
 {
 	printf("Format: Firstname Lastname Phone Email\n\n");
 	
-	input_new_contact(data, len);
+	enter_contact(data, len);
 	
 	insertion_sort_for_contacts(data, len);
 }
 
 
-void input_new_contact(Contact *data, int len)
+void enter_contact(Contact *data, int len)
 {
 	int k = 0;
 	
@@ -202,7 +189,7 @@ void input_new_contact(Contact *data, int len)
 						 data[k].phone,
 						 data[k].email);
 	
-	clear_buffer();
+	clear_input_buffer();
 }
 
 
@@ -230,21 +217,17 @@ void print_contact(Contact person)
 }
 
 
-int find_contact_index(Contact *data, int len, char *name1, char *name2)
+int is_input_buffer_clean()
 {
-	int index = -1;
-	
-	for (int i = 0; i < len; i++) {
-		if (strcmp(data[i].firstname, name1) == 0 && strcmp(data[i].lastname, name2) == 0) {
-			index = i;
-		}
-	}
-	
-	return index;
+    for (int c = getchar(); c != '\n' && c != EOF; c = getchar())
+        if (!isspace(c))
+            return 0;
+
+    return 1;
 }
 
 
-void clear_buffer()
+void clear_input_buffer()
 {
 	for (int c = getchar(); c != '\n' && c != EOF; c = getchar())
 		;
@@ -260,11 +243,25 @@ void clear_screen() {
 }
 
 
+int find_contact_index(Contact *data, int len, char *name1, char *name2)
+{
+	int index = -1;
+	
+	for (int i = 0; i < len; i++) {
+		if (strcmp(data[i].firstname, name1) == 0 && strcmp(data[i].lastname, name2) == 0) {
+			index = i;
+		}
+	}
+	
+	return index;
+}
+
+
 void enter_full_name(char *name1, char *name2)
 {
 	scanf("%s %s", name1, name2);
 	
-	clear_buffer();
+	clear_input_buffer();
 }
 
 

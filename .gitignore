@@ -1,4 +1,5 @@
 *.o
 *.out
 *.exe
-cont_dbase
+cont_dbase.c
+database.c
